@@ -1,5 +1,6 @@
 from google.cloud import vision
 from google.oauth2 import service_account
+import src.openai.openai_service
 import os
 from config import (
     GOOGLE_TYPE,
@@ -47,6 +48,7 @@ class VisionService:
             ],
         })
 
+        print(response.full_text_annotation.text)
         results = {
             'text': response.full_text_annotation.text if response.full_text_annotation.text else ''
         }
