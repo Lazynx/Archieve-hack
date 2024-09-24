@@ -89,7 +89,3 @@ async def delete_file(bucket_name: str, file_name: str):
         logger.error(f"Unexpected error in delete_file: {str(e)}")
         return False
     
-import boto3
-from botocore.exceptions import NoCredentialsError, ClientError
-import logging
-from config import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
