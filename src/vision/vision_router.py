@@ -1,7 +1,7 @@
 # vision_router.py
 
 from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
-from .vision_service import VisionService
+from vision_service import VisionService
 
 router = APIRouter()
 
