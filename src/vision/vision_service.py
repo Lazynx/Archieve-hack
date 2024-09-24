@@ -1,15 +1,37 @@
-# vision_service.py
-
 from google.cloud import vision
 from google.oauth2 import service_account
 import os
+from config import (
+    GOOGLE_TYPE,
+    GOOGLE_PROJECT_ID,
+    GOOGLE_PRIVATE_KEY_ID,
+    GOOGLE_PRIVATE_KEY,
+    GOOGLE_CLIENT_EMAIL,
+    GOOGLE_CLIENT_ID,
+    GOOGLE_AUTH_URI,
+    GOOGLE_TOKEN_URI,
+    GOOGLE_AUTH_PROVIDER_X509_CERT_URL,
+    GOOGLE_CLIENT_X509_CERT_URL,
+)
+
 
 class VisionService:
     def __init__(self):
         try:
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            credentials_path = os.path.join(current_dir, 'credentials.json')
-            credentials = service_account.Credentials.from_service_account_file(credentials_path)
+            credentials_info = {
+                "type": GOOGLE_TYPE,
+                "project_id": GOOGLE_PROJECT_ID,
+                "private_key_id": GOOGLE_PRIVATE_KEY_ID,
+                "private_key": GOOGLE_PRIVATE_KEY,
+                "client_email": GOOGLE_CLIENT_EMAIL,
+                "client_id": GOOGLE_CLIENT_ID,
+                "auth_uri": GOOGLE_AUTH_URI,
+                "token_uri": GOOGLE_TOKEN_URI,
+                "auth_provider_x509_cert_url": GOOGLE_AUTH_PROVIDER_X509_CERT_URL,
+                "client_x509_cert_url": GOOGLE_CLIENT_X509_CERT_URL,
+            }
+            # Создание объекта Credentials из словаря
+            credentials = service_account.Credentials.from_service_account_info(credentials_info)
             self.client = vision.ImageAnnotatorClient(credentials=credentials)
         except Exception as e:
             print(f"Ошибка при инициализации VisionService: {e}")
@@ -21,26 +43,11 @@ class VisionService:
         response = self.client.annotate_image({
             'image': image,
             'features': [
-                {'type_': vision.Feature.Type.LABEL_DETECTION},
-                {'type_': vision.Feature.Type.OBJECT_LOCALIZATION},
-                {'type_': vision.Feature.Type.FACE_DETECTION},
-                {'type_': vision.Feature.Type.IMAGE_PROPERTIES},
                 {'type_': vision.Feature.Type.TEXT_DETECTION},
             ],
         })
 
         results = {
-            'labels': [label.description for label in response.label_annotations],
-            'objects': [obj.name for obj in response.localized_object_annotations],
-            'faces': len(response.face_annotations),
-            'dominant_colors': [
-                {
-                    'color': f'#{int(color.color.red):02x}{int(color.color.green):02x}{int(color.color.blue):02x}',
-                    'score': color.score,
-                    'pixel_fraction': color.pixel_fraction,
-                }
-                for color in response.image_properties_annotation.dominant_colors.colors[:5]
-            ],
             'text': response.full_text_annotation.text if response.full_text_annotation.text else ''
         }
 
