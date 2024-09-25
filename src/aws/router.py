@@ -21,12 +21,7 @@ async def upload_image(file: UploadFile = File(...)):
         if not file_url:
             raise HTTPException(status_code=500, detail="File upload failed")
 
-        # Send the file URL to OpenAI GPT for description
-        description = await get_image_description(file_url)
 
-        return {
-            "file_url": file_url,
-            "description": description
-        }
+        return file_url
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

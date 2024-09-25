@@ -1,7 +1,8 @@
 from google.cloud import vision
 from google.oauth2 import service_account
-import src.openai.openai_service
-import os
+from PIL import Image
+import io
+import requests
 from config import (
     GOOGLE_TYPE,
     GOOGLE_PROJECT_ID,
@@ -38,9 +39,31 @@ class VisionService:
             print(f"Ошибка при инициализации VisionService: {e}")
             raise
 
-    async def analyze_image(self, image_content: bytes):
+    def image_to_bytes(self, image_url):
+        try:
+            # Загружаем изображение по URL
+            response = requests.get(image_url, timeout = 10)
+            response.raise_for_status() 
+            img = Image.open(io.BytesIO(response.content))
+
+            # Конвертируем изображение в байты
+            img_byte_array = io.BytesIO()
+            img.save(img_byte_array, format='JPEG')
+            img_bytes = img_byte_array.getvalue()
+
+            return img_bytes
+        except Exception as e:
+            print(f"Ошибка при загрузке или преобразовании изображения: {e}")
+            raise
+
+    async def analyze_image(self, image_url):
+        # Преобразуем изображение в байты
+        image_content = self.image_to_bytes(image_url)
+
+        # Создаем объект изображения для Google Vision API
         image = vision.Image(content=image_content)
 
+        # Отправляем изображение на анализ
         response = self.client.annotate_image({
             'image': image,
             'features': [
@@ -54,3 +77,7 @@ class VisionService:
         }
 
         return results
+
+
+
+

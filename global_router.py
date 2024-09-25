@@ -14,3 +14,4 @@ router.include_router(vision_router, prefix="/vision", tags=["vision"])
 router.include_router(aws_router, prefix="/aws")
 
 router.include_router(latex_router, prefix="/latex")
+
