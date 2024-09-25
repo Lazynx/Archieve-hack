@@ -46,10 +46,15 @@ class VisionService:
             response.raise_for_status() 
             img = Image.open(io.BytesIO(response.content))
 
-            # Конвертируем изображение в байты
+             # Получаем исходный формат изображения
+            img_format = img.format
+
+        # Конвертируем изображение в байты, используя исходный формат
             img_byte_array = io.BytesIO()
-            img.save(img_byte_array, format='JPEG')
+            img.save(img_byte_array, format=img_format)  # Используем исходный формат изображения
             img_bytes = img_byte_array.getvalue()
+
+            
 
             return img_bytes
         except Exception as e:

@@ -20,7 +20,7 @@ def get_vision_service():
 
 
 @router.post("/analyze")
-async def analyze_image(
+async def analyze_imageio(
     file: UploadFile = File(...),
     vision_service: VisionService = Depends(get_vision_service)
 ):

@@ -14,52 +14,43 @@ logger = logging.getLogger(__name__)
 # Предполагается, что эти переменные уже определены где-то в вашем коде
 s3_client = boto3.client('s3')
 
-def enhance_image(image_bytes):
-    try:
-        # Преобразование байтов в изображение numpy
-        nparr = np.frombuffer(image_bytes, np.uint8)
-        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+# def enhance_image(image_bytes):
+#     try:
+#         # Преобразование байтов в изображение numpy
+#         nparr = np.frombuffer(image_bytes, np.uint8)
+#         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-        if img is None:
-            raise ValueError("Failed to decode image")
+#         if img is None:
+#             raise ValueError("Failed to decode image")
 
-        # Применение различных методов улучшения
-        # 1. Увеличение резкости
-        kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
-        img = cv2.filter2D(img, -1, kernel)
+#         # Применение различных методов улучшения
+#         # 1. Увеличение резкости
+#         kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
+#         img = cv2.filter2D(img, -1, kernel)
 
-        # 2. Улучшение контраста
-        lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
-        l, a, b = cv2.split(lab)
-        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
-        cl = clahe.apply(l)
-        limg = cv2.merge((cl,a,b))
-        img = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
+#         # 2. Улучшение контраста
+#         lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+#         l, a, b = cv2.split(lab)
+#         clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
+#         cl = clahe.apply(l)
+#         limg = cv2.merge((cl,a,b))
+#         img = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
 
-        # 3. Шумоподавление
-        img = cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
+#         # 3. Шумоподавление
+#         img = cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
 
-        # Преобразование обратно в байты
-        is_success, buffer = cv2.imencode(".jpg", img)
-        if not is_success:
-            raise ValueError("Failed to encode image")
+#         # Преобразование обратно в байты
+#         is_success, buffer = cv2.imencode(".jpg", img)
+#         if not is_success:
+#             raise ValueError("Failed to encode image")
         
-        return io.BytesIO(buffer).getvalue()
-    except Exception as e:
-        logger.error(f"Error in enhance_image: {str(e)}")
-        raise
+#         return io.BytesIO(buffer).getvalue()
+#     except Exception as e:
+#         logger.error(f"Error in enhance_image: {str(e)}")
+#         raise
 
 async def upload_file(bucket_name: str, file: bytes, file_name: str):
     try:
-        # Проверка размера файла
-        if len(file) > 5 * 1024 * 1024:  # например, 5MB
-            logger.warning("File is too large")
-            return None
-
-        # Улучшение качества изображения
-        enhanced_file = enhance_image(file)
-
-        # Загрузка улучшенного изображения
         response = s3_client.put_object(
             Bucket=bucket_name,
             Key=file_name,
@@ -88,4 +79,3 @@ async def delete_file(bucket_name: str, file_name: str):
     except Exception as e:
         logger.error(f"Unexpected error in delete_file: {str(e)}")
         return False
-    
