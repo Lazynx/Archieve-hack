@@ -51,15 +51,10 @@ s3_client = boto3.client('s3')
 
 async def upload_file(bucket_name: str, file: bytes, file_name: str):
     try:
-        # Проверка размера файла
- 
-        # Улучшение качества изображения
-
-        # Загрузка улучшенного изображения
         response = s3_client.put_object(
             Bucket=bucket_name,
             Key=file_name,
-            Body=file
+            Body=enhanced_file
         )
         logger.info(f"File uploaded successfully: {file_name}")
         return f"https://{bucket_name}.s3.{AWS_REGION}.amazonaws.com/{file_name}"
