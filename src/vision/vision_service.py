@@ -71,7 +71,6 @@ class VisionService:
             ],
         })
 
-        # Возвращаем результат
         print(response.full_text_annotation.text)
         results = {
             'text': response.full_text_annotation.text if response.full_text_annotation.text else ''
