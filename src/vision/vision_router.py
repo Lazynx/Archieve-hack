@@ -6,6 +6,9 @@ from src.openai.openai_service import get_image_description
 from src.latex.image_and_text_to_latex import get_latex_code_from_image_and_text
 from src.latex.image_to_latex import get_latex_code_from_image
 from src.latex.latex_to_pdf import convert_tex_to_pdf_from_response
+from src.aws.s3_service import upload_file
+from typing import Annotated
+import uuid
 
 router = APIRouter()
 
@@ -49,6 +52,7 @@ async def analyze_image_by_url(
         ocr_results = await vision_service.analyze_image(image_url)
         extracted_text = ocr_results.get('text', '')
 
+
         if not extracted_text:
             raise HTTPException(status_code=400, detail="Не удалось извлечь текст из изображения.")
 
@@ -73,5 +77,38 @@ async def analyze_image_by_url(
     except HTTPException as http_err:
         raise http_err  
     
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+
+
+@router.post("/get_pdf")
+async def analyze_image(
+        file: Annotated[UploadFile, File(...)],
+        vision_service: VisionService = Depends(get_vision_service)
+):
+    try:
+        # Генерируем уникальное имя файла
+        file_name = f"{uuid.uuid4()}{file.filename}"
+
+        # Читаем содержимое файла
+        file_content = await file.read()
+
+        # Загружаем файл в S3
+        bucket_name = "spotify-nf"
+        print("GRUZIM V AWS")
+        s3_url = await upload_file(bucket_name, file_content, file_name)
+
+        if not s3_url:
+            raise HTTPException(status_code=500, detail="Failed to upload file to S3")
+
+        print("POLUchaem pdf")
+        # Анализируем изображение по полученному URL
+        result = await analyze_image_by_url(s3_url, vision_service)
+
+        # Возвращаем результат (PDF)
+        return result
+
+    except HTTPException as http_err:
+        raise http_err
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
