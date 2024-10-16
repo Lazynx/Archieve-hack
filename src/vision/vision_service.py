@@ -32,7 +32,6 @@ class VisionService:
                 "auth_provider_x509_cert_url": GOOGLE_AUTH_PROVIDER_X509_CERT_URL,
                 "client_x509_cert_url": GOOGLE_CLIENT_X509_CERT_URL,
             }
-            # Создание объекта Credentials из словаря
             credentials = service_account.Credentials.from_service_account_info(credentials_info)
             self.client = vision.ImageAnnotatorClient(credentials=credentials)
         except Exception as e:
@@ -41,17 +40,14 @@ class VisionService:
 
     def image_to_bytes(self, image_url):
         try:
-            # Загружаем изображение по URL
             response = requests.get(image_url, timeout = 10)
             response.raise_for_status() 
             img = Image.open(io.BytesIO(response.content))
 
-             # Получаем исходный формат изображения
             img_format = img.format
 
-        # Конвертируем изображение в байты, используя исходный формат
             img_byte_array = io.BytesIO()
-            img.save(img_byte_array, format=img_format)  # Используем исходный формат изображения
+            img.save(img_byte_array, format=img_format)  
             img_bytes = img_byte_array.getvalue()
 
             
@@ -62,13 +58,10 @@ class VisionService:
             raise
 
     async def analyze_image(self, image_url):
-        # Преобразуем изображение в байты
         image_content = self.image_to_bytes(image_url)
 
-        # Создаем объект изображения для Google Vision API
         image = vision.Image(content=image_content)
 
-        # Отправляем изображение на анализ
         response = self.client.annotate_image({
             'image': image,
             'features': [
@@ -76,7 +69,6 @@ class VisionService:
             ],
         })
 
-        # Возвращаем результат
         print(response.full_text_annotation.text)
         results = {
             'text': response.full_text_annotation.text if response.full_text_annotation.text else ''
