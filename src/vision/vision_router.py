@@ -50,6 +50,7 @@ async def analyze_image_by_url(
         ocr_results = await vision_service.analyze_image(image_url)
         extracted_text = ocr_results.get('text', '')
 
+
         if not extracted_text:
             raise HTTPException(status_code=400, detail="Не удалось извлечь текст из изображения.")
 
