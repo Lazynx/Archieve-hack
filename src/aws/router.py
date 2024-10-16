@@ -12,10 +12,8 @@ BUCKET_NAME = "spotify-nf"
 @router.post("/upload")
 async def upload_image(file: UploadFile = File(...)):
     try:
-        # Generate a unique file name
         file_name = f"images/{uuid.uuid4()}-{file.filename}"
 
-        # Upload file to S3
         file_url = await upload_file(BUCKET_NAME, await file.read(), file_name)
 
         if not file_url:

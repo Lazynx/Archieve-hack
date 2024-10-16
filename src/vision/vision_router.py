@@ -29,7 +29,6 @@ async def analyze_imageio(
 
     contents = await file.read()
     try:
-        # Извлекаем текст из изображения
         ocr_results = await vision_service.analyze_image(contents)
         extracted_text = ocr_results.get('text', '')
 
@@ -48,7 +47,6 @@ async def analyze_image_by_url(
     vision_service: VisionService = Depends(get_vision_service)
 ):
     try:
-        # Преобразуем изображение по URL в байты и отправляем на анализ
         ocr_results = await vision_service.analyze_image(image_url)
         extracted_text = ocr_results.get('text', '')
 
@@ -56,14 +54,12 @@ async def analyze_image_by_url(
         if not extracted_text:
             raise HTTPException(status_code=400, detail="Не удалось извлечь текст из изображения.")
 
-        # Передаем текст и URL изображения в функцию для генерации LaTeX-кода
         json_response = await get_latex_code_from_image_and_text(image_url=image_url, provided_text=extracted_text)
         
         if json_response["status"] != 200:
             raise HTTPException(status_code=500, detail="Failed to generate LaTeX code from image and text.")
 
         try:
-            # Генерируем PDF на основе LaTeX-кода
             pdf_content = convert_tex_to_pdf_from_response(json_response)
         except Exception as pdf_error:
             raise HTTPException(status_code=500, detail=f"PDF generation failed with error: {str(pdf_error)}")
@@ -71,7 +67,6 @@ async def analyze_image_by_url(
         if not pdf_content:
             raise HTTPException(status_code=500, detail="Failed to generate PDF from LaTeX code: Empty content.")
         
-        # Возвращаем PDF файл как ответ
         return Response(content=pdf_content, media_type="application/pdf")
 
     except HTTPException as http_err:
@@ -87,13 +82,10 @@ async def analyze_image(
         vision_service: VisionService = Depends(get_vision_service)
 ):
     try:
-        # Генерируем уникальное имя файла
         file_name = f"{uuid.uuid4()}{file.filename}"
 
-        # Читаем содержимое файла
         file_content = await file.read()
 
-        # Загружаем файл в S3
         bucket_name = "spotify-nf"
         print("GRUZIM V AWS")
         s3_url = await upload_file(bucket_name, file_content, file_name)
@@ -102,10 +94,8 @@ async def analyze_image(
             raise HTTPException(status_code=500, detail="Failed to upload file to S3")
 
         print("POLUchaem pdf")
-        # Анализируем изображение по полученному URL
         result = await analyze_image_by_url(s3_url, vision_service)
 
-        # Возвращаем результат (PDF)
         return result
 
     except HTTPException as http_err:
